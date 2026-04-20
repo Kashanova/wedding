@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -44,6 +45,7 @@ button {
   color:white;
 }
 </style>
+
 </head>
 
 <body>
@@ -64,13 +66,20 @@ button {
 
 <audio id="winSound" src="https://www.soundjay.com/human/cheering-01.mp3"></audio>
 
+<!-- Libraries -->
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+
 <script>
+// ===== SUPABASE =====
 const supabase = window.supabase.createClient(
   "https://aveckjhyvkblrgtcxeoi.supabase.co",
   "sb_publishable_vI2nZXL3ID48sdnFMg6dcQ_fxvVtCyJ"
 );
-  
+
+// ===== GAME STATE =====
 const SALT = "Walima_Maz_Kash_2026";
 
 let user = null;
@@ -78,6 +87,7 @@ let state = [];
 let hasWon = false;
 let winningLine = null;
 
+// ===== PROMPTS =====
 const PROMPTS = [
   {text:"Someone spills a drink", needsName:true},
   {text:"Someone dancing confidently", needsName:true},
@@ -101,6 +111,7 @@ const PROMPTS = [
   {text:"Someone filming everything vertically", needsName:true}
 ];
 
+// ===== CARD GENERATION =====
 function generateCard(){
   const shuffled = [...PROMPTS].sort(()=>Math.random()-0.5).slice(0,24);
   let grid=[], idx=0;
@@ -114,15 +125,24 @@ function generateCard(){
   return grid;
 }
 
+// ===== JOIN =====
 async function join(){
+  console.log("Join clicked");
+
   const nickname = document.getElementById("nickname").value || "Guest";
   const table = parseInt(document.getElementById("table").value);
 
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("users")
     .insert([{ nickname, table_id: table }])
     .select()
     .single();
+
+  if(error){
+    console.error(error);
+    alert("Error joining");
+    return;
+  }
 
   user = data;
   document.getElementById("join").style.display = "none";
@@ -130,6 +150,7 @@ async function join(){
   render(generateCard());
 }
 
+// ===== RENDER =====
 function render(grid){
   const c=document.getElementById("bingo");
   c.innerHTML="";
@@ -163,12 +184,16 @@ function render(grid){
         const who = input ? input.value : null;
         if(input) input.disabled = true;
 
-        await supabase.from("bingo_events").insert([{
+        const { error } = await supabase.from("bingo_events").insert([{
           user_id: user.id,
           table_id: user.table_id,
           tile: item.text,
           who: who
         }]);
+
+        if(error){
+          console.error(error);
+        }
 
         checkWin();
       };
@@ -178,6 +203,7 @@ function render(grid){
   });
 }
 
+// ===== CHECK WIN =====
 function checkWin(){
   const lines=[
     ...[0,1,2,3,4].map(i=>[0,1,2,3,4].map(j=>[i,j])),
@@ -196,11 +222,13 @@ function checkWin(){
   }
 }
 
+// ===== HASH =====
 async function hash(str){
   const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
   return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("").slice(0,8);
 }
 
+// ===== CLAIM =====
 async function claim(){
   const code = await hash(Date.now() + SALT);
 
@@ -215,10 +243,7 @@ async function claim(){
     document.getElementById("qr").appendChild(canvas);
   });
 }
-
 </script>
-
-<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 
 </body>
 </html>
