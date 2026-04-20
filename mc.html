@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MC Dashboard</title>
+
+<style>
+body { font-family:sans-serif; text-align:center; }
+
+table {
+  margin:auto;
+  border-collapse:collapse;
+}
+
+td,th {
+  border:1px solid #ddd;
+  padding:6px 10px;
+}
+
+button {
+  margin:5px;
+  padding:8px;
+  border:none;
+  border-radius:6px;
+  background:black;
+  color:white;
+}
+</style>
+</head>
+
+<body>
+
+<h2>MC Dashboard</h2>
+
+<h3>Top Tables</h3>
+<table>
+<thead><tr><th>Table</th><th>Score</th></tr></thead>
+<tbody id="tables"></tbody>
+</table>
+
+<h3>Top Players</h3>
+<table>
+<thead><tr><th>User</th><th>Score</th></tr></thead>
+<tbody id="users"></tbody>
+</table>
+
+<h3>Pending Approvals</h3>
+<div id="pending"></div>
+
+<script type="module">
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm"
+
+const supabase = createClient("https://aveckjhyvkblrgtcxeoi.supabase.co", "sb_publishable_vI2nZXL3ID48sdnFMg6dcQ_fxvVtCyJ");
+
+async function load(){
+
+  const { data } = await supabase
+    .from("bingo_events")
+    .select("id, table_id, user_id, who, tile, approved, users(nickname)");
+
+  const approved = data.filter(d=>d.approved);
+
+  // TABLES
+  const tableCounts = {};
+  approved.forEach(e=>{
+    tableCounts[e.table_id] = (tableCounts[e.table_id] || 0)+1;
+  });
+
+  document.getElementById("tables").innerHTML =
+    Object.entries(tableCounts)
+    .sort((a,b)=>b[1]-a[1])
+    .slice(0,5)
+    .map(([t,c])=>`<tr><td>${t}</td><td>${c}</td></tr>`).join("");
+
+  // USERS
+  const userCounts = {};
+  approved.forEach(e=>{
+    const name = e.users?.nickname || "Guest";
+    userCounts[name] = (userCounts[name] || 0)+1;
+  });
+
+  document.getElementById("users").innerHTML =
+    Object.entries(userCounts)
+    .sort((a,b)=>b[1]-a[1])
+    .slice(0,5)
+    .map(([u,c])=>`<tr><td>${u}</td><td>${c}</td></tr>`).join("");
+
+  // PENDING
+  const pending = data.filter(d=>!d.approved);
+
+  document.getElementById("pending").innerHTML =
+    pending.map(e=>`
+      <div>
+        ${e.tile} - ${e.who || "-"} (Table ${e.table_id})
+        <button onclick="approve('${e.id}')">Approve</button>
+      </div>
+    `).join("");
+}
+
+window.approve = async function(id){
+  await supabase
+    .from("bingo_events")
+    .update({ approved: true })
+    .eq("id", id);
+
+  load();
+}
+
+// refresh every minute
+setInterval(load, 60000);
+load();
+</script>
+
+</body>
+</html>
