@@ -64,13 +64,13 @@ button {
 
 <audio id="winSound" src="https://www.soundjay.com/human/cheering-01.mp3"></audio>
 
-<script type="module">
-import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm"
-
-const SUPABASE_URL = "https://aveckjhyvkblrgtcxeoi.supabase.co";
-const SUPABASE_KEY = "sb_publishable_vI2nZXL3ID48sdnFMg6dcQ_fxvVtCyJ";
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<script>
+const supabase = window.supabase.createClient(
+  "https://aveckjhyvkblrgtcxeoi.supabase.co",
+  "sb_publishable_vI2nZXL3ID48sdnFMg6dcQ_fxvVtCyJ"
+);
+  
 const SALT = "Walima_Maz_Kash_2026";
 
 let user = null;
