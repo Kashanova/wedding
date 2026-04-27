@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -26,6 +27,7 @@ button {
   color:white;
 }
 </style>
+
 </head>
 
 <body>
@@ -48,69 +50,89 @@ button {
 <div id="pending"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+
 <script>
-const supabase = window.supabase.createClient(
+// ===== SUPABASE =====
+var db = window.supabase.createClient(
   "https://aveckjhyvkblrgtcxeoi.supabase.co",
   "sb_publishable_vI2nZXL3ID48sdnFMg6dcQ_fxvVtCyJ"
 );
-  
+
+// ===== LOAD DATA =====
 async function load(){
 
-  const { data } = await supabase
+  const { data, error } = await db
     .from("bingo_events")
-    .select("id, table_id, user_id, who, tile, approved, users(nickname)");
+    .select("*");
 
-  const approved = data.filter(d=>d.approved);
+  console.log("DATA:", data);
+  if(error){
+    console.error("ERROR:", error);
+    return;
+  }
 
-  // TABLES
+  // ===== APPROVED =====
+  const approved = data.filter(d => d.approved === true);
+
+  // ===== TABLE SCORES =====
   const tableCounts = {};
   approved.forEach(e=>{
-    tableCounts[e.table_id] = (tableCounts[e.table_id] || 0)+1;
+    tableCounts[e.table_id] = (tableCounts[e.table_id] || 0) + 1;
   });
 
   document.getElementById("tables").innerHTML =
     Object.entries(tableCounts)
-    .sort((a,b)=>b[1]-a[1])
-    .slice(0,5)
-    .map(([t,c])=>`<tr><td>${t}</td><td>${c}</td></tr>`).join("");
+      .sort((a,b)=>b[1]-a[1])
+      .slice(0,5)
+      .map(([t,c])=>`<tr><td>${t}</td><td>${c}</td></tr>`)
+      .join("");
 
-  // USERS
+  // ===== USER SCORES =====
   const userCounts = {};
   approved.forEach(e=>{
-    const name = e.users?.nickname || "Guest";
-    userCounts[name] = (userCounts[name] || 0)+1;
+    const name = "User " + e.user_id;
+    userCounts[name] = (userCounts[name] || 0) + 1;
   });
 
   document.getElementById("users").innerHTML =
     Object.entries(userCounts)
-    .sort((a,b)=>b[1]-a[1])
-    .slice(0,5)
-    .map(([u,c])=>`<tr><td>${u}</td><td>${c}</td></tr>`).join("");
+      .sort((a,b)=>b[1]-a[1])
+      .slice(0,5)
+      .map(([u,c])=>`<tr><td>${u}</td><td>${c}</td></tr>`)
+      .join("");
 
-  // PENDING
-  const pending = data.filter(d=>!d.approved);
+  // ===== PENDING =====
+  const pending = data.filter(d => !d.approved);
 
   document.getElementById("pending").innerHTML =
     pending.map(e=>`
       <div>
-        ${e.tile} - ${e.who || "-"} (Table ${e.table_id})
+        <b>${e.tile}</b> — ${e.who || "-"} (Table ${e.table_id})
         <button onclick="approve('${e.id}')">Approve</button>
       </div>
     `).join("");
 }
 
+// ===== APPROVE =====
 window.approve = async function(id){
-  await supabase
+  const { error } = await db
     .from("bingo_events")
     .update({ approved: true })
     .eq("id", id);
 
+  if(error){
+    console.error(error);
+  }
+
   load();
 }
 
-// refresh every minute
-setInterval(load, 60000);
+// ===== AUTO REFRESH =====
+setInterval(load, 5000); // every 5 seconds (faster for testing)
+
+// initial load
 load();
+
 </script>
 
 </body>
