@@ -74,7 +74,7 @@ button {
 
 <script>
 // ===== SUPABASE =====
-const supabase = window.supabase.createClient(
+const db = window.supabase.createClient(
   "https://aveckjhyvkblrgtcxeoi.supabase.co",
   "sb_publishable_vI2nZXL3ID48sdnFMg6dcQ_fxvVtCyJ"
 );
@@ -132,7 +132,7 @@ async function join(){
   const nickname = document.getElementById("nickname").value || "Guest";
   const table = parseInt(document.getElementById("table").value);
 
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from("users")
     .insert([{ nickname, table_id: table }])
     .select()
@@ -184,7 +184,7 @@ function render(grid){
         const who = input ? input.value : null;
         if(input) input.disabled = true;
 
-        const { error } = await supabase.from("bingo_events").insert([{
+        const { error } = await db.from("bingo_events").insert([{
           user_id: user.id,
           table_id: user.table_id,
           tile: item.text,
@@ -222,10 +222,11 @@ function checkWin(){
   }
 }
 
-// ===== HASH =====
+// ===== SAFE HASH =====
 async function hash(str){
   const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
-  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("").slice(0,8);
+  const arr = Array.from(new Uint8Array(buf));
+  return arr.map(b=>b.toString(16).padStart(2,"0")).join("").slice(0,8);
 }
 
 // ===== CLAIM =====
