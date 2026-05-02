@@ -10,32 +10,53 @@
 body {
   font-family: "ABeeZee", sans-serif;
   text-align:center;
+
+  background-image: url("Bingo card assets.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: top center;
+
+  min-height: 2000px;
 }
 
 /* JOIN */
-#join { margin:20px; }
-
-/* GRID */
-#bingo {
-  display:grid;
-  grid-template-columns:repeat(5,1fr);
-  gap:6px;
-  max-width:500px;
-  margin:auto;
+#join {
+  position:absolute;
+  top:20px;
+  left:50%;
+  transform:translateX(-50%);
 }
 
-/* CELLS — TRANSPARENT ONLY */
+/* GRID (PNG-ALIGNED) */
+#bingo {
+  position:absolute;
+
+  left: 49.7%;
+  top: 55%;
+
+  transform: translate(-50%, -50%);
+
+  width: 78%;
+  aspect-ratio: 1 / 1;
+
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  grid-template-rows:repeat(5,1fr);
+  gap: 0.8%;
+}
+
+/* CELLS */
 .cell {
-  padding:10px;
+  padding:6px;
   border-radius:10px;
 
   background: transparent;
-  border: 1px solid rgba(0,0,0,0.15);
+  border: 1px solid rgba(0,0,0,0.2);
 
-  cursor:pointer;
+  font-size:12px;
 }
 
-/* MARKED STATE */
+/* MARKED */
 .cell.marked {
   background:#4caf50;
   color:white;
@@ -43,8 +64,9 @@ body {
 
 /* INPUT */
 input {
-  width:80%;
-  margin-top:5px;
+  width:90%;
+  margin-top:4px;
+  font-size:10px;
 }
 
 /* BUTTON */
