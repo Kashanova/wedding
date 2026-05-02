@@ -11,7 +11,11 @@
 body {
   font-family: "ABeeZee", sans-serif;
   text-align:center;
-  background-color: white;
+
+  background-image: url("Bingo_card_assets.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center top;
 }
 
 body.gameStarted {
@@ -207,7 +211,7 @@ function render(grid){
       } else {
         d.innerHTML = `
           <div>${item.text}</div>
-          ${item.needsName ? '<input placeholder="Who?" onclick="event.stopPropagation()">' : ''}
+          ${item.needsName ? '<input placeholder="Who?" class="nameInput">': ''}
         `;
         state[i][j]=false;
       }
