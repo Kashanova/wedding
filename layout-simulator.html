@@ -26,11 +26,12 @@ body {
 /* GRID OVERLAY */
 .grid {
   position:absolute;
-  top:200px;   /* adjust to align with PNG */
-  left:20px;
-  width:350px;
-  height:350px;
 
+  left: 50%;
+  top: 50%;
+
+  transform: translate(-50%, -50%);
+}
   display:grid;
   grid-template-columns:repeat(5,1fr);
   grid-template-rows:repeat(5,1fr);
