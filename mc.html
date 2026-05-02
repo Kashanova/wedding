@@ -31,6 +31,12 @@ button {
   border-radius:10px;
   display:none;
 }
+
+#winners div {
+  margin:5px;
+  padding:8px;
+  border:1px solid #ccc;
+}
 </style>
 
 </head>
@@ -57,14 +63,26 @@ button {
 <h3>🎉 Bingo Claims</h3>
 <div id="bingoClaims"></div>
 
+<h3>🏆 Winners</h3>
+<div id="winners"></div>
+
 <div id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
 <script>
-var db = window.supabase.createClient("https://aveckjhyvkblrgtcxeoi.supabase.co","sb_publishable_vI2nZXL3ID48sdnFMg6dcQ_fxvVtCyJ"); 
+var db = window.supabase.createClient("https://aveckjhyvkblrgtcxeoi.supabase.co","sb_publishable_vI2nZXL3ID48sdnFMg6dcQ_fxvVtCyJ");
 
-let seenBingo = new Set();
+let usersMap = {};
+let winners = [];
+let seenBingoIds = new Set();
+
+// ===== LOAD USERS =====
+async function loadUsers(){
+  const { data } = await db.from("users").select("*");
+  usersMap = {};
+  data.forEach(u => usersMap[u.id] = u);
+}
 
 // ===== TOAST =====
 function showToast(msg){
@@ -77,32 +95,39 @@ function showToast(msg){
 // ===== LOAD =====
 async function load(){
 
+  await loadUsers();
+
   const { data } = await db.from("bingo_events").select("*");
 
-  // ===== BINGO =====
-  const bingo = data.filter(d=>d.is_bingo);
+  // ===== BINGO CLAIMS =====
+  const bingoEvents = data.filter(d=>d.is_bingo);
 
   document.getElementById("bingoClaims").innerHTML =
-    bingo.map(e=>{
-      if(!seenBingo.has(e.id)){
-        showToast(`BINGO: ${e.nickname} (Table ${e.table_id})`);
-        seenBingo.add(e.id);
+    bingoEvents.map(e=>{
+      const u = usersMap[e.user_id];
+      if(!u) return "";
+
+      // show toast ONLY once
+      if(!seenBingoIds.has(e.id)){
+        showToast(`🎉 BINGO ready: ${u.nickname} (Table ${u.table_id})`);
+        seenBingoIds.add(e.id);
       }
 
       return `
         <div>
-          ${e.nickname} (Table ${e.table_id})
+          ${u.nickname} (Table ${u.table_id})
+          <button onclick="setWinner('${u.nickname}')">Add Winner</button>
         </div>
       `;
     }).join("");
 
   // ===== APPROVED =====
-  const approved = data.filter(d=>d.approved);
+  const approved = data.filter(d=>d.approved === true);
 
-  // TABLES
+  // ===== TABLE SCORES =====
   const tableCounts = {};
   approved.forEach(e=>{
-    tableCounts[e.table_id]=(tableCounts[e.table_id]||0)+1;
+    tableCounts[e.table_id] = (tableCounts[e.table_id] || 0) + 1;
   });
 
   document.getElementById("tables").innerHTML =
@@ -112,11 +137,12 @@ async function load(){
       .map(([t,c])=>`<tr><td>${t}</td><td>${c}</td></tr>`)
       .join("");
 
-  // USERS (FIXED)
+  // ===== USER SCORES (FIXED) =====
   const userCounts = {};
   approved.forEach(e=>{
-    const name = e.nickname || "Guest";
-    userCounts[name]=(userCounts[name]||0)+1;
+    const u = usersMap[e.user_id];
+    const name = u ? u.nickname : "Guest";
+    userCounts[name] = (userCounts[name] || 0) + 1;
   });
 
   document.getElementById("users").innerHTML =
@@ -126,20 +152,27 @@ async function load(){
       .map(([u,c])=>`<tr><td>${u}</td><td>${c}</td></tr>`)
       .join("");
 
-  // PENDING
+  // ===== PENDING =====
   const pending = data.filter(d=>!d.approved && !d.is_bingo);
 
   document.getElementById("pending").innerHTML =
-    pending.map(e=>`
-      <div>
-        <b>${e.tile}</b> — ${e.who || "-"} 
-        (${e.nickname}, Table ${e.table_id})
-        <button onclick="approveTile('${e.tile}')">Approve ALL</button>
-      </div>
-    `).join("");
+    pending.map(e=>{
+      const u = usersMap[e.user_id];
+      const name = u ? u.nickname : "Guest";
+
+      return `
+        <div>
+          <b>${e.tile}</b> — ${e.who || "-"} 
+          (${name}, Table ${e.table_id})
+          <button onclick="approveTile('${e.tile}')">Approve ALL</button>
+        </div>
+      `;
+    }).join("");
+
+  renderWinners();
 }
 
-// ===== APPROVE =====
+// ===== GLOBAL APPROVE =====
 window.approveTile = async function(tile){
   await db
     .from("bingo_events")
@@ -147,6 +180,18 @@ window.approveTile = async function(tile){
     .eq("tile", tile);
 
   load();
+}
+
+// ===== WINNERS =====
+function renderWinners(){
+  document.getElementById("winners").innerHTML =
+    winners.map((w,i)=>`<div>#${i+1}: ${w}</div>`).join("");
+}
+
+window.setWinner = function(name){
+  if(winners.length >= 3) return;
+  winners.push(name);
+  renderWinners();
 }
 
 // ===== REALTIME =====
@@ -157,6 +202,7 @@ db.channel('live')
   )
   .subscribe();
 
+// initial load
 load();
 
 </script>
