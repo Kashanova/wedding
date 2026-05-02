@@ -8,15 +8,8 @@
 <style>
 body { font-family:sans-serif; text-align:center; }
 
-table {
-  margin:auto;
-  border-collapse:collapse;
-}
-
-td,th {
-  border:1px solid #ddd;
-  padding:6px 10px;
-}
+table { margin:auto; border-collapse:collapse; }
+td,th { border:1px solid #ddd; padding:6px 10px; }
 
 button {
   margin:5px;
@@ -25,6 +18,18 @@ button {
   border-radius:6px;
   background:black;
   color:white;
+}
+
+#toast {
+  position:fixed;
+  bottom:20px;
+  left:50%;
+  transform:translateX(-50%);
+  background:black;
+  color:white;
+  padding:12px 18px;
+  border-radius:10px;
+  display:none;
 }
 </style>
 
@@ -46,90 +51,114 @@ button {
 <tbody id="users"></tbody>
 </table>
 
-<h3>Pending Approvals</h3>
+<h3>Pending Tiles</h3>
 <div id="pending"></div>
+
+<h3>🎉 Bingo Claims</h3>
+<div id="bingoClaims"></div>
+
+<div id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
 <script>
 var db = window.supabase.createClient("https://aveckjhyvkblrgtcxeoi.supabase.co","sb_publishable_vI2nZXL3ID48sdnFMg6dcQ_fxvVtCyJ"); 
 
+let seenBingo = new Set();
+
+// ===== TOAST =====
+function showToast(msg){
+  const t = document.getElementById("toast");
+  t.innerText = msg;
+  t.style.display = "block";
+  setTimeout(()=>t.style.display="none", 4000);
+}
+
+// ===== LOAD =====
 async function load(){
 
-  const { data, error } = await db
-    .from("bingo_events")
-    .select(`
-      id,
-      table_id,
-      user_id,
-      who,
-      tile,
-      approved,
-      users:users(nickname)
-    `);
+  const { data } = await db.from("bingo_events").select("*");
 
-  if(error){
-    console.error(error);
-    return;
-  }
+  // ===== BINGO =====
+  const bingo = data.filter(d=>d.is_bingo);
 
-  // 🔒 Remove broken rows
-  const cleanData = data.filter(d => d.users !== null);
+  document.getElementById("bingoClaims").innerHTML =
+    bingo.map(e=>{
+      if(!seenBingo.has(e.id)){
+        showToast(`🎉 BINGO: ${e.nickname} (Table ${e.table_id})`);
+        seenBingo.add(e.id);
+      }
 
-  const approved = cleanData.filter(d=>d.approved);
+      return `
+        <div>
+          ${e.nickname} (Table ${e.table_id})
+        </div>
+      `;
+    }).join("");
 
-  // ===== TABLES =====
+  // ===== APPROVED =====
+  const approved = data.filter(d=>d.approved);
+
+  // TABLES
   const tableCounts = {};
   approved.forEach(e=>{
-    tableCounts[e.table_id] = (tableCounts[e.table_id] || 0)+1;
+    tableCounts[e.table_id]=(tableCounts[e.table_id]||0)+1;
   });
 
   document.getElementById("tables").innerHTML =
     Object.entries(tableCounts)
-    .sort((a,b)=>b[1]-a[1])
-    .slice(0,5)
-    .map(([t,c])=>`<tr><td>${t}</td><td>${c}</td></tr>`)
-    .join("");
+      .sort((a,b)=>b[1]-a[1])
+      .slice(0,5)
+      .map(([t,c])=>`<tr><td>${t}</td><td>${c}</td></tr>`)
+      .join("");
 
-  // ===== USERS (FIXED) =====
+  // USERS (FIXED)
   const userCounts = {};
   approved.forEach(e=>{
-    const name = e.users?.nickname || "Guest";
-    userCounts[name] = (userCounts[name] || 0)+1;
+    const name = e.nickname || "Guest";
+    userCounts[name]=(userCounts[name]||0)+1;
   });
 
   document.getElementById("users").innerHTML =
     Object.entries(userCounts)
-    .sort((a,b)=>b[1]-a[1])
-    .slice(0,5)
-    .map(([u,c])=>`<tr><td>${u}</td><td>${c}</td></tr>`)
-    .join("");
+      .sort((a,b)=>b[1]-a[1])
+      .slice(0,5)
+      .map(([u,c])=>`<tr><td>${u}</td><td>${c}</td></tr>`)
+      .join("");
 
-  // ===== PENDING =====
-  const pending = cleanData.filter(d=>!d.approved);
+  // PENDING
+  const pending = data.filter(d=>!d.approved && !d.is_bingo);
 
   document.getElementById("pending").innerHTML =
     pending.map(e=>`
       <div>
-        ${e.tile} - ${e.who || "-"} 
-        (${e.users?.nickname || "Guest"}, Table ${e.table_id})
-        <button onclick="approve('${e.id}')">Approve</button>
+        <b>${e.tile}</b> — ${e.who || "-"} 
+        (${e.nickname}, Table ${e.table_id})
+        <button onclick="approveTile('${e.tile}')">Approve ALL</button>
       </div>
     `).join("");
 }
 
-window.approve = async function(id){
+// ===== APPROVE =====
+window.approveTile = async function(tile){
   await db
     .from("bingo_events")
     .update({ approved: true })
-    .eq("id", id);
+    .eq("tile", tile);
 
   load();
 }
 
-// 🔄 Faster refresh
-setInterval(load, 5000);
+// ===== REALTIME =====
+db.channel('live')
+  .on('postgres_changes',
+    { event: '*', schema: 'public', table: 'bingo_events' },
+    load
+  )
+  .subscribe();
+
 load();
+
 </script>
 
 </body>
