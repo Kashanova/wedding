@@ -32,12 +32,17 @@ body.gameStarted {
 .cell {
   padding:10px;
   border-radius:10px;
-  background:#eee;
+
+  background: transparent;
+  border: 1px solid rgba(0,0,0,0.15);
+
+  backdrop-filter: blur(2px);
 }
 
 .cell.marked {
-  background:#4caf50;
-  color:white;
+  background: rgba(76, 175, 80, 0.85);
+  color: white;
+  border: 1px solid rgba(76, 175, 80, 1);
 }
 
 button {
