@@ -3,7 +3,7 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kashan & Maziha's Wedding Bingo</title>
+<title>Wedding Bingo</title>
 
 <link href="https://fonts.googleapis.com/css2?family=ABeeZee&display=swap" rel="stylesheet">
 
@@ -59,7 +59,7 @@ button {
 
 <script>
 // ===== SUPABASE =====
-var db = window.supabase.createClient("https://aveckjhyvkblrgtcxeoi.supabase.co","sb_publishable_vI2nZXL3ID48sdnFMg6dcQ_fxvVtCyJ");
+var db = window.supabase.createClient("YOUR_URL","YOUR_KEY");
 
 let user = null;
 let state = [];
@@ -114,7 +114,7 @@ async function join(){
     .select()
     .single();
 
-  if(error || !data){
+  if(error){
     alert("Error joining");
     return;
   }
@@ -150,7 +150,7 @@ function render(grid){
       }
 
       d.onclick = async ()=>{
-        if(!user || !user.id || state[i][j] || item==="FREE") return;
+        if(!user || state[i][j] || item==="FREE") return;
 
         state[i][j]=true;
         d.classList.add("marked");
@@ -161,7 +161,6 @@ function render(grid){
 
         await db.from("bingo_events").insert([{
           user_id: user.id,
-          nickname: user.nickname,   // ⭐ KEY FIX
           table_id: user.table_id,
           tile: item.text,
           who: who,
@@ -195,11 +194,8 @@ function checkWin(){
 
 // ===== CLAIM =====
 async function claim(){
-  if(!user) return;
-
   await db.from("bingo_events").insert([{
     user_id: user.id,
-    nickname: user.nickname,
     table_id: user.table_id,
     tile: "BINGO",
     who: user.nickname,
