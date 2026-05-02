@@ -105,33 +105,90 @@ button {
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
 <script>
-var db = window.supabase.createClient("YOUR_URL","YOUR_KEY");
+var db = window.supabase.createClient("https://aveckjhyvkblrgtcxeoi.supabase.co","sb_publishable_vI2nZXL3ID48sdnFMg6dcQ_fxvVtCyJ");
 
 let user = null;
 let state = [];
 let hasWon = false;
 
 const PROMPTS = [
-  {text:"Someone spills a drink", needsName:true},
-  {text:"Someone dancing confidently", needsName:true},
-  {text:"Someone takes a selfie", needsName:true},
-  {text:"Someone laughs uncontrollably", needsName:true},
-  {text:"Bride laughs loudly"},
-  {text:"Groom looks nervous"},
-  {text:"Crowd cheers"},
-  {text:"Speech gets emotional"},
-  {text:"Someone asks for WiFi", needsName:true},
-  {text:"Dance circle forms"},
-  {text:"Someone says wow"},
-  {text:"Someone claps off beat"},
-  {text:"Camera flashes everywhere"},
-  {text:"Food gets praised"},
-  {text:"Someone leaves early", needsName:true},
-  {text:"Someone arrives late", needsName:true},
-  {text:"Someone fixes outfit", needsName:true},
-  {text:"Someone whispers gossip", needsName:true},
-  {text:"Unexpected emotional moment"},
-  {text:"Someone filming everything vertically", needsName:true}
+  {text:"Someone who got married this year", needsName:true},
+  {text:"Someone who is married for more than 10 years", needsName:true},
+  {text:"Someone who has been to a walima before this one", needsName:true},
+  {text:"Someone who traveled from another country for this walima", needsName:true},
+  {text:"Someone who traveled from another city for this walima", needsName:true},
+
+  {text:"Someone who speaks 3 or more languages", needsName:true},
+  {text:"Someone who speaks 4 or more languages", needsName:true},
+  {text:"Someone who has lived in 2 or more countries", needsName:true},
+  {text:"Someone who has lived in 3 or more countries", needsName:true},
+
+  {text:"Someone who moved to a new country in the last 5 years", needsName:true},
+  {text:"Someone who moved to a new city in the last year", needsName:true},
+
+  {text:"Someone who is a parent", needsName:true},
+  {text:"Someone who is a grandparent", needsName:true},
+  {text:"Someone who is the eldest sibling", needsName:true},
+  {text:"Someone who is the youngest sibling", needsName:true},
+
+  {text:"Someone who has 3 or more siblings", needsName:true},
+  {text:"Someone who has 5 or more siblings", needsName:true},
+
+  {text:"Someone who has more than 1 Master's degree", needsName:true},
+  {text:"Someone who has a PhD", needsName:true},
+  {text:"Someone currently studying at university", needsName:true},
+
+  {text:"Someone who works in healthcare", needsName:true},
+  {text:"Someone who works in engineering or tech", needsName:true},
+  {text:"Someone who works in education", needsName:true},
+  {text:"Someone who runs their own business", needsName:true},
+
+  {text:"Someone who has changed careers at least once", needsName:true},
+
+  {text:"Someone who has known the bride since childhood", needsName:true},
+  {text:"Someone who has known the groom since childhood", needsName:true},
+  {text:"Someone who met the couple through family", needsName:true},
+  {text:"Someone who met the couple through friends", needsName:true},
+
+  {text:"Someone who came with their spouse", needsName:true},
+  {text:"Someone who came with their children", needsName:true},
+  {text:"Someone attending a walima for the first time", needsName:true},
+
+  {text:"Someone who has performed Umrah or Hajj", needsName:true},
+  {text:"Someone who plans to perform Umrah or Hajj", needsName:true},
+
+  {text:"Someone who enjoys traveling frequently", needsName:true},
+  {text:"Someone who has visited more than 10 countries", needsName:true},
+
+  {text:"Someone who can cook traditional dishes really well", needsName:true},
+  {text:"Someone who is known for hosting gatherings", needsName:true},
+
+  {text:"Someone who is the oldest cousin in their family", needsName:true},
+  {text:"Someone who is the youngest cousin in their family", needsName:true},
+
+  {text:"Someone who prefers tea over coffee", needsName:true},
+  {text:"Someone who prefers coffee over tea", needsName:true},
+
+  {text:"Someone who enjoys photography", needsName:true},
+  {text:"Someone who enjoys making videos", needsName:true},
+
+  {text:"Someone who loves weddings", needsName:true},
+  {text:"Someone who rarely attends weddings", needsName:true},
+
+  {text:"Someone who has been in more than 5 weddings this year", needsName:true},
+
+  {text:"Someone who has a hidden talent", needsName:true},
+  {text:"Someone who plays a musical instrument", needsName:true},
+
+  {text:"Someone who enjoys long-distance travel", needsName:true},
+  {text:"Someone who prefers staying local", needsName:true},
+
+  {text:"Someone who is very punctual", needsName:true},
+  {text:"Someone who is always slightly late", needsName:true},
+
+  {text:"Someone who has siblings living in different countries", needsName:true},
+
+  {text:"Someone who has attended a wedding abroad", needsName:true}
 ];
 
 function generateCard(){
@@ -228,262 +285,6 @@ function checkWin(){
   }
 }
 
-async function claim(){
-  await db.from("bingo_events").insert([{
-    user_id: user.id,
-    table_id: user.table_id,
-    tile: "BINGO",
-    who: user.nickname,
-    approved: false,
-    is_bingo: true
-  }]);
-
-  alert("Bingo submitted!");
-}
-</script>
-
-</body>
-</html><!DOCTYPE html>
-<html>
-<head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Wedding Bingo</title>
-
-<link href="https://fonts.googleapis.com/css2?family=ABeeZee&display=swap" rel="stylesheet">
-
-<style>
-body {
-  font-family: "ABeeZee", sans-serif;
-  text-align:center;
-
-  background-image: url("Bingo card assets.png");
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: top center;
-
-  min-height: 2000px;
-}
-
-/* JOIN */
-#join {
-  position:absolute;
-  top:20px;
-  left:50%;
-  transform:translateX(-50%);
-}
-
-/* GRID (PNG-ALIGNED) */
-#bingo {
-  position:absolute;
-
-  left: 49.7%;
-  top: 55%;
-
-  transform: translate(-50%, -50%);
-
-  width: 78%;
-  aspect-ratio: 1 / 1;
-
-  display:grid;
-  grid-template-columns:repeat(5,1fr);
-  grid-template-rows:repeat(5,1fr);
-  gap: 0.8%;
-}
-
-/* CELLS */
-.cell {
-  padding:6px;
-  border-radius:10px;
-
-  background: transparent;
-  border: 1px solid rgba(0,0,0,0.2);
-
-  font-size:12px;
-}
-
-/* MARKED */
-.cell.marked {
-  background:#4caf50;
-  color:white;
-}
-
-/* INPUT */
-input {
-  width:90%;
-  margin-top:4px;
-  font-size:10px;
-}
-
-/* BUTTON */
-button {
-  margin:10px;
-  padding:10px;
-  border:none;
-  border-radius:8px;
-  background:black;
-  color:white;
-}
-</style>
-
-</head>
-
-<body>
-
-<h2>Wedding Bingo</h2>
-
-<div id="join">
-  <input id="nickname" placeholder="Your name">
-  <input id="table" type="number" placeholder="Table #">
-  <button onclick="join()">Start</button>
-</div>
-
-<div id="bingo"></div>
-
-<button id="claimBtn" style="display:none;" onclick="claim()">Claim Bingo</button>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-
-<script>
-var db = window.supabase.createClient(
-  "https://aveckjhyvkblrgtcxeoi.supabase.co",
-  "sb_publishable_vI2nZXL3ID48sdnFMg6dcQ_fxvVtCyJ"
-);
-
-let user = null;
-let state = [];
-let hasWon = false;
-
-/* PROMPTS */
-const PROMPTS = [
-  {text:"Someone spills a drink", needsName:true},
-  {text:"Someone dancing confidently", needsName:true},
-  {text:"Someone takes a selfie", needsName:true},
-  {text:"Someone laughs uncontrollably", needsName:true},
-  {text:"Bride laughs loudly"},
-  {text:"Groom looks nervous"},
-  {text:"Crowd cheers"},
-  {text:"Speech gets emotional"},
-  {text:"Someone asks for WiFi", needsName:true},
-  {text:"Dance circle forms"},
-  {text:"Someone says wow"},
-  {text:"Someone claps off beat"},
-  {text:"Camera flashes everywhere"},
-  {text:"Food gets praised"},
-  {text:"Someone leaves early", needsName:true},
-  {text:"Someone arrives late", needsName:true},
-  {text:"Someone fixes outfit", needsName:true},
-  {text:"Someone whispers gossip", needsName:true},
-  {text:"Unexpected emotional moment"},
-  {text:"Someone filming everything vertically", needsName:true}
-];
-
-/* CARD */
-function generateCard(){
-  const shuffled = [...PROMPTS].sort(()=>Math.random()-0.5).slice(0,24);
-  let grid=[], idx=0;
-
-  for(let i=0;i<5;i++){
-    grid[i]=[];
-    for(let j=0;j<5;j++){
-      grid[i][j]=(i===2&&j===2)?"FREE":shuffled[idx++];
-    }
-  }
-  return grid;
-}
-
-/* JOIN */
-async function join(){
-  const nickname = document.getElementById("nickname").value || "Guest";
-  const table = parseInt(document.getElementById("table").value);
-
-  const { data, error } = await db
-    .from("users")
-    .insert([{ nickname, table_id: table }])
-    .select()
-    .single();
-
-  if(error){
-    alert("Error joining");
-    return;
-  }
-
-  user = data;
-  document.getElementById("join").style.display = "none";
-
-  render(generateCard());
-}
-
-/* RENDER */
-function render(grid){
-  const c = document.getElementById("bingo");
-  c.innerHTML = "";
-  state = [];
-  hasWon = false;
-
-  grid.forEach((row,i)=>{
-    state[i]=[];
-
-    row.forEach((item,j)=>{
-      let d = document.createElement("div");
-      d.className = "cell";
-
-      if(item === "FREE"){
-        d.innerText = "FREE";
-        d.classList.add("marked");
-        state[i][j] = true;
-      } else {
-        d.innerHTML = `
-          <div>${item.text}</div>
-          ${item.needsName ? '<input placeholder="Who?">' : ''}
-        `;
-        state[i][j] = false;
-      }
-
-      d.onclick = async ()=>{
-        if(!user || state[i][j] || item==="FREE") return;
-
-        state[i][j] = true;
-        d.classList.add("marked");
-
-        const input = d.querySelector("input");
-        const who = input ? input.value : null;
-
-        if(input) input.disabled = true;
-
-        await db.from("bingo_events").insert([{
-          user_id: user.id,
-          table_id: user.table_id,
-          tile: item.text,
-          who: who,
-          approved: false,
-          is_bingo: false
-        }]);
-
-        checkWin();
-      };
-
-      c.appendChild(d);
-    });
-  });
-}
-
-/* WIN CHECK */
-function checkWin(){
-  const lines = [
-    ...[0,1,2,3,4].map(i=>[0,1,2,3,4].map(j=>[i,j])),
-    ...[0,1,2,3,4].map(j=>[0,1,2,3,4].map(i=>[i,j]))
-  ];
-
-  for(let line of lines){
-    if(line.every(([i,j])=>state[i][j])){
-      hasWon = true;
-      document.getElementById("claimBtn").style.display = "block";
-      return;
-    }
-  }
-}
-
-/* CLAIM */
 async function claim(){
   await db.from("bingo_events").insert([{
     user_id: user.id,
