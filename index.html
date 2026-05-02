@@ -10,6 +10,251 @@
 body {
   font-family: "ABeeZee", sans-serif;
   text-align:center;
+  margin:0;
+}
+
+/* ===== BACKGROUND ===== */
+#canvas {
+  position:relative;
+  width:100%;
+  max-width:500px;
+  margin:auto;
+}
+
+#bg {
+  width:100%;
+  display:block;
+}
+
+/* ===== JOIN ===== */
+#join {
+  margin-top: 80px; /* moved down */
+}
+
+/* ===== GRID ===== */
+#bingo {
+  position:absolute;
+
+  left: 49.7%;
+  top: 53.45%;
+
+  transform: translate(-50%, -50%);
+  width: 78%;
+  height: 42%;
+
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  grid-template-rows:repeat(5,1fr);
+  gap:4px;
+}
+
+/* ===== CELLS ===== */
+.cell {
+  background:transparent;   /* transparent boxes */
+  border-radius:10px;
+
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  text-align:center;
+
+  font-size:10px;
+  padding:4px;
+}
+
+.cell.marked {
+  background:rgba(76,175,80,0.7);
+  color:white;
+}
+
+input {
+  width:80%;
+  margin-top:4px;
+  font-size:10px;
+}
+
+button {
+  margin:10px;
+  padding:10px;
+  border:none;
+  border-radius:8px;
+  background:black;
+  color:white;
+}
+</style>
+</head>
+
+<body>
+
+<h2>Wedding Bingo</h2>
+
+<div id="join">
+  <input id="nickname" placeholder="Your name">
+  <input id="table" type="number" placeholder="Table #">
+  <button onclick="join()">Start</button>
+</div>
+
+<div id="canvas">
+  <img id="bg" src="Bingo card assets.png">
+  <div id="bingo"></div>
+</div>
+
+<button id="claimBtn" style="display:none;" onclick="claim()">Claim Bingo</button>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+
+<script>
+var db = window.supabase.createClient("YOUR_URL","YOUR_KEY");
+
+let user = null;
+let state = [];
+let hasWon = false;
+
+const PROMPTS = [
+  {text:"Someone spills a drink", needsName:true},
+  {text:"Someone dancing confidently", needsName:true},
+  {text:"Someone takes a selfie", needsName:true},
+  {text:"Someone laughs uncontrollably", needsName:true},
+  {text:"Bride laughs loudly"},
+  {text:"Groom looks nervous"},
+  {text:"Crowd cheers"},
+  {text:"Speech gets emotional"},
+  {text:"Someone asks for WiFi", needsName:true},
+  {text:"Dance circle forms"},
+  {text:"Someone says wow"},
+  {text:"Someone claps off beat"},
+  {text:"Camera flashes everywhere"},
+  {text:"Food gets praised"},
+  {text:"Someone leaves early", needsName:true},
+  {text:"Someone arrives late", needsName:true},
+  {text:"Someone fixes outfit", needsName:true},
+  {text:"Someone whispers gossip", needsName:true},
+  {text:"Unexpected emotional moment"},
+  {text:"Someone filming everything vertically", needsName:true}
+];
+
+function generateCard(){
+  const shuffled = [...PROMPTS].sort(()=>Math.random()-0.5).slice(0,24);
+  let grid=[], idx=0;
+
+  for(let i=0;i<5;i++){
+    grid[i]=[];
+    for(let j=0;j<5;j++){
+      grid[i][j]=(i===2&&j===2)?"FREE":shuffled[idx++];
+    }
+  }
+  return grid;
+}
+
+async function join(){
+  const nickname = document.getElementById("nickname").value || "Guest";
+  const table = parseInt(document.getElementById("table").value);
+
+  const { data } = await db
+    .from("users")
+    .insert([{ nickname, table_id: table }])
+    .select()
+    .single();
+
+  user = data;
+  document.getElementById("join").style.display = "none";
+
+  render(generateCard());
+}
+
+function render(grid){
+  const c=document.getElementById("bingo");
+  c.innerHTML="";
+  state=[]; hasWon=false;
+
+  grid.forEach((row,i)=>{
+    state[i]=[];
+    row.forEach((item,j)=>{
+      let d=document.createElement("div");
+      d.className="cell";
+
+      if(item==="FREE"){
+        d.innerText="FREE";
+        d.classList.add("marked");
+        state[i][j]=true;
+      } else {
+        d.innerHTML = `
+          <div>${item.text}</div>
+          ${item.needsName ? '<input placeholder="Who?">' : ''}
+        `;
+        state[i][j]=false;
+      }
+
+      d.onclick = async ()=>{
+        if(!user || state[i][j] || item==="FREE") return;
+
+        state[i][j]=true;
+        d.classList.add("marked");
+
+        const input = d.querySelector("input");
+        const who = input ? input.value : null;
+        if(input) input.disabled = true;
+
+        await db.from("bingo_events").insert([{
+          user_id: user.id,
+          table_id: user.table_id,
+          tile: item.text,
+          who: who,
+          approved: false,
+          is_bingo: false
+        }]);
+
+        checkWin();
+      };
+
+      c.appendChild(d);
+    });
+  });
+}
+
+function checkWin(){
+  const lines=[
+    ...[0,1,2,3,4].map(i=>[0,1,2,3,4].map(j=>[i,j])),
+    ...[0,1,2,3,4].map(j=>[0,1,2,3,4].map(i=>[i,j]))
+  ];
+
+  for(let line of lines){
+    if(line.every(([i,j])=>state[i][j])){
+      hasWon=true;
+      document.getElementById("claimBtn").style.display="block";
+      return;
+    }
+  }
+}
+
+async function claim(){
+  await db.from("bingo_events").insert([{
+    user_id: user.id,
+    table_id: user.table_id,
+    tile: "BINGO",
+    who: user.nickname,
+    approved: false,
+    is_bingo: true
+  }]);
+
+  alert("Bingo submitted!");
+}
+</script>
+
+</body>
+</html><!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wedding Bingo</title>
+
+<link href="https://fonts.googleapis.com/css2?family=ABeeZee&display=swap" rel="stylesheet">
+
+<style>
+body {
+  font-family: "ABeeZee", sans-serif;
+  text-align:center;
 
   background-image: url("Bingo card assets.png");
   background-size: contain;
