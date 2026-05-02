@@ -27,15 +27,18 @@ body {
 .grid {
   position:absolute;
 
-  left: calc(50% + 10px);
-  top: calc(50% + 20px);
+  left: 49.7%;
+  top: 55%; /* tweak */
 
   transform: translate(-50%, -50%);
-  
+
+  width: 78%;
+  aspect-ratio: 1 / 1;
+
   display:grid;
   grid-template-columns:repeat(5,1fr);
   grid-template-rows:repeat(5,1fr);
-  gap:4px;
+  gap: 0.8%;
 }
 
 .cell {
