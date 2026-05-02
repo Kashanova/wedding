@@ -36,7 +36,12 @@ body.gameStarted {
   background: transparent;
   border: 1px solid rgba(0,0,0,0.15);
 
-  backdrop-filter: blur(2px);
+  backdrop-filter: blur(6px);
+  transition: backdrop-filter 0.3s ease;
+}
+
+.cell.no-blur {
+  backdrop-filter: none;
 }
 
 .cell.marked {
