@@ -173,6 +173,7 @@ async function join(){
 
   user = data;
   document.getElementById("join").style.display = "none";
+  document.body.classList.add("gameStarted");
 
   render(generateCard());
 }
