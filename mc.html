@@ -85,7 +85,7 @@ async function load(){
   document.getElementById("bingoClaims").innerHTML =
     bingo.map(e=>{
       if(!seenBingo.has(e.id)){
-        showToast(`🎉 BINGO: ${e.nickname} (Table ${e.table_id})`);
+        showToast(`BINGO: ${e.nickname} (Table ${e.table_id})`);
         seenBingo.add(e.id);
       }
 
