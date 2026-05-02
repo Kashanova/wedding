@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,20 +10,12 @@
 body {
   font-family: "ABeeZee", sans-serif;
   text-align:center;
-
-  background-image: url("Bingo_card_assets.png");
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center top;
 }
 
-body.gameStarted {
-  background-image: url("Bingo_card_assets.png");
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-}
-  
+/* JOIN */
+#join { margin:20px; }
+
+/* GRID */
 #bingo {
   display:grid;
   grid-template-columns:repeat(5,1fr);
@@ -33,6 +24,7 @@ body.gameStarted {
   margin:auto;
 }
 
+/* CELLS — TRANSPARENT ONLY */
 .cell {
   padding:10px;
   border-radius:10px;
@@ -40,20 +32,22 @@ body.gameStarted {
   background: transparent;
   border: 1px solid rgba(0,0,0,0.15);
 
-  backdrop-filter: blur(6px);
-  transition: backdrop-filter 0.3s ease;
+  cursor:pointer;
 }
 
-.cell.no-blur {
-  backdrop-filter: none;
-}
-
+/* MARKED STATE */
 .cell.marked {
-  background: rgba(76, 175, 80, 0.85);
-  color: white;
-  border: 1px solid rgba(76, 175, 80, 1);
+  background:#4caf50;
+  color:white;
 }
 
+/* INPUT */
+input {
+  width:80%;
+  margin-top:5px;
+}
+
+/* BUTTON */
 button {
   margin:10px;
   padding:10px;
@@ -83,14 +77,16 @@ button {
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
 <script>
-// ===== SUPABASE =====
-var db = window.supabase.createClient("https://aveckjhyvkblrgtcxeoi.supabase.co","sb_publishable_vI2nZXL3ID48sdnFMg6dcQ_fxvVtCyJ");
+var db = window.supabase.createClient(
+  "https://aveckjhyvkblrgtcxeoi.supabase.co",
+  "sb_publishable_vI2nZXL3ID48sdnFMg6dcQ_fxvVtCyJ"
+);
 
 let user = null;
 let state = [];
 let hasWon = false;
 
-// ===== PROMPTS =====
+/* PROMPTS */
 const PROMPTS = [
   {text:"Someone spills a drink", needsName:true},
   {text:"Someone dancing confidently", needsName:true},
@@ -111,51 +107,10 @@ const PROMPTS = [
   {text:"Someone fixes outfit", needsName:true},
   {text:"Someone whispers gossip", needsName:true},
   {text:"Unexpected emotional moment"},
-  {text:"Someone filming everything vertically", needsName:true},
-
-  {text:"Someone drops cutlery loudly", needsName:true},
-  {text:"Kid running across the dance floor"},
-  {text:"Someone checking themselves in camera reflection", needsName:true},
-  {text:"Plate stacked way too high at buffet", needsName:true},
-  {text:"Someone asking where the bathroom is", needsName:true},
-  {text:"Group photo takes forever to organize"},
-  {text:"Someone hyping up the DJ", needsName:true},
-  {text:"Someone redoing their hair mid-event", needsName:true},
-  {text:"Awkward handshake moment"},
-  {text:"Someone recording a slow-mo video", needsName:true},
-  {text:"Someone waving at the camera unnecessarily", needsName:true},
-  {text:"Elder giving serious life advice", needsName:true},
-  {text:"Someone guarding the dessert table", needsName:true},
-  {text:"Someone complains about being full", needsName:true},
-  {text:"Someone goes back for thirds", needsName:true},
-  {text:"Someone struggling with heels", needsName:true},
-  {text:"Someone adjusting lighting for photos", needsName:true},
-  {text:"Phone flashlight used as a torch", needsName:true},
-  {text:"Someone starts an unexpected chant", needsName:true},
-  {text:"Someone forgets where they parked", needsName:true},
-  {text:"Someone dramatically reacting to food", needsName:true},
-  {text:"Someone insisting on one more photo", needsName:true},
-  {text:"Someone pretending not to see the camera", needsName:true},
-  {text:"Someone checking time repeatedly", needsName:true},
-  {text:"Someone coordinating a group selfie", needsName:true},
-  {text:"Someone loudly calling someone across the room", needsName:true},
-  {text:"Someone nearly trips but recovers", needsName:true},
-  {text:"Someone explaining how they know the couple", needsName:true},
-  {text:"Someone adjusting their watch or jewelry", needsName:true},
-  {text:"Someone giving directions to others", needsName:true},
-  {text:"Someone hyping up the bride or groom", needsName:true},
-  {text:"Someone trying to find a seat", needsName:true},
-  {text:"Someone offering food to others", needsName:true},
-  {text:"Someone laughing at their own joke", needsName:true},
-  {text:"Someone looking lost", needsName:true},
-  {text:"Someone making a dramatic entrance", needsName:true},
-  {text:"Someone negotiating table seating", needsName:true},
-  {text:"Someone checking their outfit in a spoon reflection", needsName:true},
-  {text:"Someone starting a random conversation", needsName:true},
-  {text:"Someone giving unsolicited dance lessons", needsName:true}
+  {text:"Someone filming everything vertically", needsName:true}
 ];
 
-// ===== CARD =====
+/* CARD */
 function generateCard(){
   const shuffled = [...PROMPTS].sort(()=>Math.random()-0.5).slice(0,24);
   let grid=[], idx=0;
@@ -169,7 +124,7 @@ function generateCard(){
   return grid;
 }
 
-// ===== JOIN =====
+/* JOIN */
 async function join(){
   const nickname = document.getElementById("nickname").value || "Guest";
   const table = parseInt(document.getElementById("table").value);
@@ -187,43 +142,45 @@ async function join(){
 
   user = data;
   document.getElementById("join").style.display = "none";
-  document.body.classList.add("gameStarted");
 
   render(generateCard());
 }
 
-// ===== RENDER =====
+/* RENDER */
 function render(grid){
-  const c=document.getElementById("bingo");
-  c.innerHTML="";
-  state=[]; hasWon=false;
+  const c = document.getElementById("bingo");
+  c.innerHTML = "";
+  state = [];
+  hasWon = false;
 
   grid.forEach((row,i)=>{
     state[i]=[];
-    row.forEach((item,j)=>{
-      let d=document.createElement("div");
-      d.className="cell";
 
-      if(item==="FREE"){
-        d.innerText="FREE";
+    row.forEach((item,j)=>{
+      let d = document.createElement("div");
+      d.className = "cell";
+
+      if(item === "FREE"){
+        d.innerText = "FREE";
         d.classList.add("marked");
-        state[i][j]=true;
+        state[i][j] = true;
       } else {
         d.innerHTML = `
           <div>${item.text}</div>
-          ${item.needsName ? '<input placeholder="Who?" class="nameInput">': ''}
+          ${item.needsName ? '<input placeholder="Who?">' : ''}
         `;
-        state[i][j]=false;
+        state[i][j] = false;
       }
 
       d.onclick = async ()=>{
         if(!user || state[i][j] || item==="FREE") return;
 
-        state[i][j]=true;
+        state[i][j] = true;
         d.classList.add("marked");
 
         const input = d.querySelector("input");
         const who = input ? input.value : null;
+
         if(input) input.disabled = true;
 
         await db.from("bingo_events").insert([{
@@ -243,23 +200,23 @@ function render(grid){
   });
 }
 
-// ===== CHECK WIN =====
+/* WIN CHECK */
 function checkWin(){
-  const lines=[
+  const lines = [
     ...[0,1,2,3,4].map(i=>[0,1,2,3,4].map(j=>[i,j])),
     ...[0,1,2,3,4].map(j=>[0,1,2,3,4].map(i=>[i,j]))
   ];
 
   for(let line of lines){
     if(line.every(([i,j])=>state[i][j])){
-      hasWon=true;
-      document.getElementById("claimBtn").style.display="block";
+      hasWon = true;
+      document.getElementById("claimBtn").style.display = "block";
       return;
     }
   }
 }
 
-// ===== CLAIM =====
+/* CLAIM */
 async function claim(){
   await db.from("bingo_events").insert([{
     user_id: user.id,
