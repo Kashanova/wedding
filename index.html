@@ -254,7 +254,7 @@ function render(grid){
       } else {
         d.innerHTML = `
           <div>${item.text}</div>
-          ${item.needsName ? '<input placeholder="Who?">' : ''}
+          ${item.needsName ? '<input placeholder="Who?" onclick="event.stopPropagation()">' : ''}
         `;
         state[i][j]=false;
       }
