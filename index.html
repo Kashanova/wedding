@@ -36,7 +36,7 @@ body {
   position:absolute;
 
   left: 49.7%;
-  top: 50%;
+  top: 42%;
 
   transform: translate(-50%, -50%);
   width: 78%;
@@ -46,6 +46,16 @@ body {
   grid-template-columns:repeat(5,1fr);
   grid-template-rows:repeat(5,1fr);
   gap:4px;
+}
+#claimBtn {
+  position:absolute;
+
+  top: 5%;     /* adjust */
+  left: 5%;    /* adjust */
+
+  transform: translate(0,0);
+
+  display:none;
 }
 
 /* ===== CELLS ===== */
@@ -100,7 +110,13 @@ button {
   <div id="bingo"></div>
 </div>
 
-<button id="claimBtn" style="display:none;" onclick="claim()">Claim Bingo</button>
+<div id="canvas">
+  <img id="bg" src="bingo_card_assets.png">
+
+  <button id="claimBtn" onclick="claim()">Claim Bingo</button>
+
+  <div id="bingo"></div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
